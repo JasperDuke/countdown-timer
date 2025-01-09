@@ -4,48 +4,58 @@ import "./App.css";
 function App() {
   const [breakTime, setBreakTime] = useState(5);
   const [sessionTime, setSessionTime] = useState(25);
-  const [timer, setTimer] = useState({ minutes: 25, seconds: 0 });
+  const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [isSession, setIsSession] = useState(true);
   const [intervalId, setIntervalId] = useState(null);
 
-  useEffect(() => {
-    if (!isRunning && isSession) {
-      setTimer({ minutes: sessionTime, seconds: 0 });
-    }
-  }, [sessionTime, isRunning, isSession]);
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0"
+    )}`;
+  };
+
+  const playBeep = () => {
+    const beepAudio = document.getElementById("beep");
+    beepAudio.currentTime = 0;
+    beepAudio.play();
+  };
 
   const resetTimer = () => {
     clearInterval(intervalId);
     setBreakTime(5);
     setSessionTime(25);
-    setTimer({ minutes: 25, seconds: 0 });
+    setTimeLeft(25 * 60);
     setIsRunning(false);
     setIsSession(true);
+
+    const beepAudio = document.getElementById("beep");
+    beepAudio.pause();
+    beepAudio.currentTime = 0;
   };
 
   const startTimer = () => {
     if (isRunning) return;
 
     const id = setInterval(() => {
-      setTimer((prev) => {
-        const { minutes, seconds } = prev;
-
-        if (seconds > 0) {
-          return { minutes, seconds: seconds - 1 };
-        } else if (minutes > 0) {
-          return { minutes: minutes - 1, seconds: 59 };
+      setTimeLeft((prevTimeLeft) => {
+        if (prevTimeLeft > 0) {
+          return prevTimeLeft - 1;
         } else {
           if (isSession) {
+            playBeep();
             setIsSession(false);
-            return { minutes: breakTime, seconds: 0 };
+            return breakTime * 60;
           } else {
             setIsSession(true);
-            return { minutes: sessionTime, seconds: 0 };
+            return sessionTime * 60;
           }
         }
       });
-    }, 1000);
+    }, 100);
 
     setIntervalId(id);
     setIsRunning(true);
@@ -56,20 +66,11 @@ function App() {
     setIsRunning(false);
   };
 
-  const data = [
-    {
-      time: breakTime,
-      setTime: setBreakTime,
-      label: "Break Length",
-      id: "break",
-    },
-    {
-      time: sessionTime,
-      setTime: setSessionTime,
-      label: "Session Length",
-      id: "session",
-    },
-  ];
+  useEffect(() => {
+    if (!isRunning) {
+      setTimeLeft(isSession ? sessionTime * 60 : breakTime * 60);
+    }
+  }, [sessionTime, breakTime, isSession]);
 
   return (
     <div className="App">
@@ -78,24 +79,38 @@ function App() {
 
         {/* Counter Buttons */}
         <div className="counter-headings">
-          {data.map((timer, index) => (
-            <div className="heading" key={index}>
-              <h2 id={timer.id + "-label"}>{timer.label}</h2>
+          {[
+            {
+              label: "Break Length",
+              time: breakTime,
+              setTime: setBreakTime,
+              id: "break",
+            },
+            {
+              label: "Session Length",
+              time: sessionTime,
+              setTime: setSessionTime,
+              id: "session",
+            },
+          ].map(({ label, time, setTime, id }) => (
+            <div className="heading" key={id}>
+              <h2 id={`${id}-label`}>{label}</h2>
               <div className="counter">
                 <button
-                  id={timer.id + "-decrement"}
+                  id={`${id}-decrement`}
                   onClick={() => {
-                    if (timer.time <= 1) return;
-                    timer.setTime((prev) => prev - 1);
+                    if (time > 1) setTime(time - 1);
                   }}
                   className="counter-button"
                 >
                   ⬇️
                 </button>
-                <h3 id={timer.id + "-length"}>{timer.time}</h3>
+                <h3 id={`${id}-length`}>{time}</h3>
                 <button
-                  id={timer.id + "-increment"}
-                  onClick={() => timer.setTime((prev) => prev + 1)}
+                  id={`${id}-increment`}
+                  onClick={() => {
+                    if (time < 60) setTime(time + 1);
+                  }}
                   className="counter-button"
                 >
                   ⬆️
@@ -105,20 +120,10 @@ function App() {
           ))}
         </div>
 
-        {/* Timer */}
+        {/* Timer Display */}
         <div className="watch">
           <h2 id="timer-label">{isSession ? "Session" : "Break"}</h2>
-          <div className="watch-time">
-            <div id="time-left">
-              <span id="minute" className="count-down">
-                {String(timer.minutes).padStart(2, "0")}
-              </span>
-              :
-              <span id="second" className="count-down">
-                {String(timer.seconds).padStart(2, "0")}
-              </span>
-            </div>
-          </div>
+          <div id="time-left">{formatTime(timeLeft)}</div>
         </div>
 
         {/* Controls */}
@@ -134,6 +139,9 @@ function App() {
             Reset
           </button>
         </div>
+
+        {/* Beep Sound */}
+        <audio id="beep" preload="auto" src="beep.mp3"></audio>
       </div>
     </div>
   );

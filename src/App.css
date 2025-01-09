@@ -67,3 +67,14 @@
 .count-down {
   font-size: 22px;
 }
+
+.control-button {
+  border: 1px solid black;
+  border-radius: 8px;
+  padding: 10px;
+  margin-inline: 20px;
+  font-weight: bold;
+  font-size: 12px;
+  cursor: pointer;
+  background-color: transparent;
+}
