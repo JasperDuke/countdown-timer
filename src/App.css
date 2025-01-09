@@ -78,3 +78,23 @@
   cursor: pointer;
   background-color: transparent;
 }
+
+.scroll-box {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-radius: 10px 0 0 0;
+  cursor: pointer;
+  z-index: 999;
+  background-image: linear-gradient(90deg, #935d3e, #d8a489, #a05e3b);
+  background-size: 200% auto;
+}
+
+.name {
+  color: white;
+  font-weight: 600;
+}

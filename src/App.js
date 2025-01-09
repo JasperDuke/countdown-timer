@@ -143,6 +143,9 @@ function App() {
         {/* Beep Sound */}
         <audio id="beep" preload="auto" src="beep.mp3"></audio>
       </div>
+      <div className="scroll-box">
+        <span className="name">Jasper Duke</span>
+      </div>
     </div>
   );
 }
